@@ -23,3 +23,5 @@ button {
 }
 button:disabled { opacity: 0.6; cursor: default; }
 .muted { color: #59636e; font-size: 13px; }
+.warn { padding: 8px; background: #fef7e0; border-radius: 6px; font-size: 13px; }
+button.secondary { color: #0b57d0; background: #e8f0fe; margin-bottom: 0; }

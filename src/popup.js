@@ -1,9 +1,19 @@
-// Popup: last result and "Update now" (PLAN.md §7.2). Schedule/pause arrive in Phase 2-3.
-import { getHistory } from './storage.js';
+// Popup: last result, today's schedule, pause/resume and "Update now" (PLAN.md §7.2).
+import { getHistory, getSettings, successesToday } from './storage.js';
+import { effectivePerDay } from './scheduler.js';
 
 const status = document.getElementById('status');
+const schedule = document.getElementById('schedule');
+const paused = document.getElementById('paused');
+const pausedText = document.getElementById('pausedText');
 const result = document.getElementById('result');
 const button = document.getElementById('updateNow');
+
+const time = (ts) => new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+const when = (ts) => {
+  const tomorrow = new Date(ts).getDate() !== new Date().getDate();
+  return `${tomorrow ? 'tomorrow ' : ''}${time(ts)}`;
+};
 
 const MESSAGES = {
   ok: '✅ Profile updated',
@@ -28,9 +38,24 @@ function describe(entry) {
 }
 
 async function render() {
-  const [last] = await getHistory();
+  const history = await getHistory();
+  const [last] = history;
   status.textContent = last ? `Last run ${ago(last.at)}: ${describe(last)}` : 'No updates yet.';
+
+  const settings = await getSettings();
+  const { nextRunAt, pausedUntil = 0 } = await chrome.storage.local.get(['nextRunAt', 'pausedUntil']);
+  const done = successesToday(history).length;
+  schedule.textContent =
+    `Today: ${done} of ${effectivePerDay(settings)} automatic updates` +
+    (nextRunAt ? ` · Next: ${when(nextRunAt)}` : '');
+
+  paused.hidden = pausedUntil <= Date.now();
+  pausedText.textContent = `⏸ Automatic updates paused until ${when(pausedUntil)}. `;
 }
+
+document.getElementById('resume').addEventListener('click', () => {
+  chrome.runtime.sendMessage({ type: 'resume' }, () => render());
+});
 
 function setRunning(running) {
   button.disabled = running;

@@ -1,5 +1,17 @@
 // Thin wrappers over chrome.storage.local (PLAN.md §9). Nothing leaves the browser.
+import { DEFAULT_SETTINGS, dayKey } from './scheduler.js';
+
 const HISTORY_LIMIT = 50;
+
+export async function getSettings() {
+  const { settings } = await chrome.storage.local.get('settings');
+  return { ...DEFAULT_SETTINGS, ...settings };
+}
+
+/** Successful updates so far today, from history. */
+export function successesToday(history, now = Date.now()) {
+  return history.filter((h) => h.result === 'ok' && dayKey(h.at) === dayKey(now));
+}
 const LOCK_TTL_MS = 2 * 60 * 1000;
 
 export async function getHistory() {
