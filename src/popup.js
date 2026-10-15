@@ -46,7 +46,7 @@ async function render() {
   const { nextRunAt, pausedUntil = 0 } = await chrome.storage.local.get(['nextRunAt', 'pausedUntil']);
   const done = successesToday(history).length;
   schedule.textContent =
-    `Today: ${done} of ${effectivePerDay(settings)} automatic updates` +
+    `Today: ${done} of ${effectivePerDay(settings)} updates` +
     (nextRunAt ? ` · Next: ${when(nextRunAt)}` : '');
 
   paused.hidden = pausedUntil <= Date.now();
