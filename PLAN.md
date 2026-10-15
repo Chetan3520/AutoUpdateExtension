@@ -214,7 +214,7 @@ No `tabs`, `cookies`, `<all_urls>` or `history` permissions. Fewer permissions m
 ## 11. Project structure
 
 ```
-D:\NaukriProfileRefresher\
+D:\AutoUpdateExtension\
 ├── PLAN.md                  ← this document
 ├── manifest.json
 ├── src/

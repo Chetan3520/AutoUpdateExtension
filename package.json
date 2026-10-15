@@ -1,0 +1,13 @@
+{
+  "name": "autoupdate-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Chrome extension that keeps a Naukri profile marked as recently updated",
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.js\""
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
