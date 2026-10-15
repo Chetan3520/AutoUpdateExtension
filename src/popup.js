@@ -37,7 +37,11 @@ button.addEventListener('click', () => {
   result.textContent = 'Updating… this takes about 20 seconds. You can close this popup.';
   chrome.runtime.sendMessage({ type: 'updateNow' }, (res) => {
     button.disabled = false;
-    result.textContent = res ? describe(res) : 'No response from the background service.';
+    const err = chrome.runtime.lastError?.message;
+    result.textContent = res
+      ? describe(res)
+      : `No response from the background service${err ? `: ${err}` : ''}. ` +
+        'Reload the extension in chrome://extensions and try again.';
     render();
   });
 });
