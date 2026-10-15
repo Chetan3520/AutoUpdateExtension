@@ -13,10 +13,21 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg?.type === 'ping') {
     sendResponse({ ok: true, version: chrome.runtime.getManifest().version });
   } else if (msg?.type === 'updateNow') {
-    runUpdate('manual').then(sendResponse);
-    return true; // keep the channel open for the async response
+    // Reply as soon as the run starts; the result arrives via storage (history).
+    // Holding the message port open for a ~30 s run is unreliable in MV3.
+    startUpdate('manual').then(sendResponse);
+    return true;
   }
 });
+
+/** Takes the lock, replies {started} or {result:'busy'}, and runs in the background. */
+async function startUpdate(trigger) {
+  if (!(await acquireLock())) {
+    return { result: 'busy', message: 'An update is already running' };
+  }
+  runUpdate(trigger); // not awaited: popup listens for the history change
+  return { started: true };
+}
 
 function waitForTabComplete(tabId) {
   return new Promise((resolve, reject) => {
@@ -44,13 +55,15 @@ async function runInTab(tabId, mode) {
   return result;
 }
 
-/** One full update: edit the headline in a background tab, then reload and verify. */
-export async function runUpdate(trigger) {
-  if (!(await acquireLock())) {
-    return { result: 'busy', message: 'An update is already running' };
-  }
+/**
+ * One full update: edit the headline in a background tab, then reload and verify.
+ * The caller must already hold the run lock (see startUpdate).
+ */
+async function runUpdate(trigger) {
   let tabId;
   let outcome;
+  // Extension API calls reset the service worker's idle timer, keeping it alive mid-run.
+  const keepAlive = setInterval(() => chrome.runtime.getPlatformInfo(), 20000);
   try {
     const tab = await chrome.tabs.create({ url: PROFILE_URL, active: false });
     tabId = tab.id;
@@ -79,6 +92,7 @@ export async function runUpdate(trigger) {
   } catch (e) {
     outcome = { result: 'error', message: String(e?.message || e) };
   } finally {
+    clearInterval(keepAlive);
     if (tabId !== undefined) chrome.tabs.remove(tabId).catch(() => {});
     await releaseLock();
   }
