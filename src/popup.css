@@ -8,3 +8,18 @@ body {
 }
 h1 { font-size: 16px; margin: 0 0 8px; }
 a { color: #0b57d0; }
+button {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 8px;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: #0b57d0;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+button:disabled { opacity: 0.6; cursor: default; }
+.muted { color: #59636e; font-size: 13px; }
